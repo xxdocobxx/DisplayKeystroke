@@ -1,0 +1,42 @@
+body
+{
+    overflow: hidden;
+    background: rgba(0,0,0,0);
+    margin: 0;
+    padding: 0;
+}
+
+#disconnect-screen
+{
+    display: inline-block;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background-color: rgba(0,0,0,.5);
+}
+
+.connected
+{
+    display: none !important;
+}
+
+#display-area
+{
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.key-image
+{
+    display: inline-block;
+    position: fixed;
+}
+
+.key-text
+{
+    display: inline-block;
+    position: absolute;
+}

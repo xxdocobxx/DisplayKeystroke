@@ -1,0 +1,18 @@
+// InputDisplay.idl : IDL source for InputDisplay
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (InputDisplay.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	uuid(C8992E7E-5920-4EBD-8E01-16BF9EA1F8DA),
+	version(1.0),
+]
+library InputDisplayLib
+{
+	importlib("stdole2.tlb");
+};
+
