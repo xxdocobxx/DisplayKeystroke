@@ -32,17 +32,15 @@ If you are familiar with javascript, it is easy to create your own layout.
 		url, // image path when key released
 		pressed_url, // image name when key pressed
 	},
+	text:
 	{
-		text:
-		{
-			x, // text position x relatively to the image position
-			y, // text position y relatively to the image position
-			size, // font size
-			bold, // set it to true or false to toggle bold font weight
-			font, // font name
-			color, // text color when key released
-			pressed_color, // text color when key pressed
-		}
+		x, // text position x relatively to the image position
+		y, // text position y relatively to the image position
+		size, // font size
+		bold, // set it to true or false to toggle bold font weight
+		font, // font name
+		color, // text color when key released
+		pressed_color, // text color when key pressed
 	}
 }
 ```
