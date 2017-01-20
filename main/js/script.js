@@ -4,10 +4,10 @@ function hasProperty(obj, prop)
 }
 
 function loadLayout(layout)
-{	
+{
 	var display_area = $('#display-area');
 	display_area.empty();
-	
+
 	var style = '';
 
 	if(hasProperty(layout, 'default_image'))
@@ -104,7 +104,7 @@ function connect()
 {
 	if(typeof host_ip !== 'string' && typeof host_port !== 'string')
 		return;
-	
+
 	if (ws !== null)
 	{
 		ws.close();
@@ -181,9 +181,9 @@ function getCustomLayout()
 	{
 		if($('#load_layout_script').length)
 			$('#load_layout_script').remove();
-		
+
 		layout_folder_name = layout_folder_names[layout_index];
-		
+
 		if(layout_folder_name.charAt(layout_folder_name.length - 1) !== '/')
 			layout_folder_name += '/';
 
@@ -194,7 +194,7 @@ function getCustomLayout()
 			type: 'text/javascript',
 			async: false
 		});
-		
+
 		document.head.appendChild(script[0]);
 	}
 }
