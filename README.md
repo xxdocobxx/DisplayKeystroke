@@ -19,6 +19,7 @@ If you are familiar with javascript, it is easy to create your own layout.
  - Open `layout` folder and make a copy of `QWERTY+mouse` folder then rename it to a new name you choose.
  - Remove unwanted key objects from the `items` array. A key object includes a `image` and a `text` object, it should look like `{ image: {...}, text: { key_code: '1b', ...} }`.
  - Set the properties of a key object to change the appearance of a key.
+
  Available key object properties:
 ```javascript
 {
