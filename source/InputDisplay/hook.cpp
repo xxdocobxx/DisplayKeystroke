@@ -25,13 +25,13 @@ void Hook::init(HINSTANCE hinstance, void(*onKeyFunc)(DWORD vkCode, bool toggle,
 void Hook::start()
 {
 	hh_keyboard = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, hinst, 0);
-//	hh_mouse = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, hinst, 0);
+	hh_mouse = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, hinst, 0);
 }
 
 void Hook::stop()
 {
 	UnhookWindowsHookEx(hh_keyboard);
-//	UnhookWindowsHookEx(hh_mouse);
+	UnhookWindowsHookEx(hh_mouse);
 	hh_keyboard = NULL;
 	hh_mouse = NULL;
 }

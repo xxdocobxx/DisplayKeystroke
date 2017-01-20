@@ -4,7 +4,6 @@
 #include "maindlg.h"
 #include <Richedit.h>
 
-
 // Cmaindlg
 
 void Cmaindlg::init()
@@ -13,13 +12,7 @@ void Cmaindlg::init()
 	HICON hIcon = LoadIconW(hinstance, MAKEINTRESOURCE(IDI_ICON1));
 	SetIcon(hIcon, FALSE);
 
-	// edit port
-	SetDlgItemText(IDC_EDIT_PORT, _T("7788"));
-
-	// client ip
-	client_ip_edit.Attach(GetDlgItem(IDC_IPADDRESS_CLIENT));
-	client_ip_edit.EnableWindow(FALSE);
-	client_ip_edit.SetWindowText(_T("127.0.0.1"));
+	loadConfigFile();
 
 	// richedit
 	richedit.Attach(GetDlgItem(IDC_RICHEDIT21));
@@ -41,15 +34,23 @@ void Cmaindlg::cleanup()
 {
 	richedit = NULL;
 
+	if(about_dlg)
+	{
+		delete about_dlg;
+		about_dlg = NULL;
+	}
+
+	if(approve_dlg_data)
+	{
+		delete approve_dlg_data;
+		approve_dlg_data = NULL;
+	}
+
+	requesting_clients.clear();
+
 	hook.stop();
 
 	websocket.cleanup();
-
-	if(about_dlg)
-		delete about_dlg;
-
-	if(approve_dlg_data)
-		delete approve_dlg_data;
 
 }
 
@@ -234,7 +235,7 @@ void Cmaindlg::wsCallback(WebSocket::CallbackMsg * msg)
 			{
 				main_dlg->GetDlgItemText(IDC_IPADDRESS_CLIENT, main_dlg->tmp_str, MAX_TMP_STR);
 				if(_tcscmp(main_dlg->tmp_str, client->addr) == 0)
-					websocket.recvMessage(client);
+					main_dlg->acceptConnection(client);
 				else
 					websocket.closeClient(client);
 			}
@@ -280,14 +281,7 @@ void Cmaindlg::approveConnection(bool accept)
 		requesting_clients.pop_front();
 
 		if(accept)
-		{
-			addText(_T("Client %s:%d connected.\n"), client->addr, client->port);
-			client->ws_status = WebSocket::ws_status_connected;
-			char msg[] = "server approved";
-			websocket.sendMessage(msg, (DWORD)sizeof(msg), client);
-			websocket.ping(client);
-
-		}
+			acceptConnection(client);
 		else
 			websocket.closeClient(client);
 
@@ -319,6 +313,112 @@ void Cmaindlg::openApproveDlg()
 			approvedlg->ShowWindow(SW_SHOW);
 			approvedlg->SetFocus();
 			approvedlg->BringWindowToTop();
+
+			FLASHWINFO flashwinfo;
+			flashwinfo.cbSize = sizeof(FLASHWINFO);
+			flashwinfo.hwnd = approvedlg->m_hWnd;
+			flashwinfo.dwFlags = FLASHW_ALL;
+			flashwinfo.uCount = 5;
+			flashwinfo.dwTimeout = 0;
+			FlashWindowEx(&flashwinfo);
+
+			flashwinfo.hwnd = m_hWnd;
+			flashwinfo.dwFlags = FLASHW_TRAY;
+			FlashWindowEx(&flashwinfo);
+		}
+	}
+}
+
+void Cmaindlg::acceptConnection(WebSocket::Client* client)
+{
+	addText(_T("Client %s:%d connected.\n"), client->addr, client->port);
+	client->ws_status = WebSocket::ws_status_connected;
+	char msg[] = "server approved";
+	websocket.sendMessage(msg, (DWORD)sizeof(msg), client);
+	websocket.ping(client);
+}
+
+void Cmaindlg::loadConfigFile()
+{
+	CString str;
+	CAtlFile file;
+	char* buf = NULL;
+	ULONGLONG ull_len = 0;
+
+	try
+	{
+		if(file.Create(_T("config.js"), GENERIC_READ, 0, OPEN_ALWAYS) != S_OK)
+			throw 0;
+
+		if(file.GetSize(ull_len) != S_OK)
+			throw 1;
+
+		DWORD len = (DWORD)ull_len;
+		buf = new char[len + 1];
+
+		if(file.Read(buf, len) != S_OK)
+			throw 2;
+
+		buf[len] = 0;
+		str = buf;
+
+		delete[] buf;
+		file.Close();
+
+		// edit port
+		CString host_port(_T("7788"));
+		getValueFromString(str, _T("var host_port ="), host_port);
+		SetDlgItemText(IDC_EDIT_PORT, host_port);
+
+		// client ip
+		CString client_ip(_T("127.0.0.1"));
+		getValueFromString(str, _T("var client_ip ="), client_ip);
+
+		client_ip_edit.Attach(GetDlgItem(IDC_IPADDRESS_CLIENT));
+		client_ip_edit.EnableWindow(FALSE);
+		client_ip_edit.SetWindowText(client_ip);
+	}
+	catch(int err)
+	{
+		if(err > 0)
+			file.Close();
+		if(err > 1)
+			delete[] buf;
+		return;
+	}
+}
+
+void Cmaindlg::getValueFromString(CString& string, LPCWSTR findstr, CString& output)
+{
+	int pos, pos1, pos2;
+
+	pos = string.Find(findstr);
+	if(pos != -1)
+	{
+		pos1 = string.Find(_T("\'"), pos + 1);
+		if(pos1 != -1)
+		{
+			pos2 = string.Find(_T("\'"), pos1 + 1);
+			if(pos2 != -1)
+			{
+				int len = pos2 - pos1 - 1;
+				if(len > 0)
+					output = string.Mid(pos1 + 1, len);
+			}
+		}
+		else
+		{
+			pos1 = string.Find(_T("\""), pos + 1);
+			if(pos1 != -1)
+			{
+				pos2 = string.Find(_T("\""), pos1 + 1);
+				if(pos2 != -1)
+				{
+					int len = pos2 - pos1 - 1;
+					if(len > 0)
+						output = string.Mid(pos1 + 1, len);
+				}
+			}
 		}
 	}
 }

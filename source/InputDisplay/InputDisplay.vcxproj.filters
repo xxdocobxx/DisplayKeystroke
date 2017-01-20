@@ -82,9 +82,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="InputDisplay.rgs">
       <Filter>Resource Files</Filter>
     </None>
@@ -95,7 +92,7 @@
     </Midl>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icon1.ico">
+    <Image Include="pressed_enter.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -41,8 +41,12 @@ WebSocket::Client::~Client()
 
 	websocket.clients.erase(it);
 
-	for(std::list<OverlappedDetail*>::iterator it = overlapped_list.begin(); it != overlapped_list.end(); ++it)
-		delete (*it);
+	for (std::list<OverlappedDetail*>::iterator it = overlapped_list.begin(); it != overlapped_list.end(); ++it)
+	{
+		(*it)->client = NULL;
+		(*it)->operation = operation_cancel;
+	}
+//		 delete (*it);
 
 	CloseHandle(lock_mutex);
 }
@@ -271,14 +275,17 @@ unsigned int __stdcall WebSocket::workerThread(LPVOID lParam)
 				continue;
 		}
 
-		client = overlapped->client;
+		if(overlapped->operation == operation_cancel)
+			continue;
 
 		DWORD result1;
-		if((result1 = WaitForSingleObject(client->lock_mutex, INFINITE)) != WAIT_OBJECT_0)
+		if((result1 = WaitForSingleObject(overlapped->client->lock_mutex, INFINITE)) != WAIT_OBJECT_0)
 		{
 			ws->log(L"workerThread - WaitForSingleObject client->lock_mutex function %d\n", result1);
 			continue;
 		}
+
+		client = overlapped->client;
 
 		switch(overlapped->operation)
 		{

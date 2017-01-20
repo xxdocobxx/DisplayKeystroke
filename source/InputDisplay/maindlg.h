@@ -5,6 +5,8 @@
 #include "resource.h"       // main symbols
 
 #include <atlhost.h>
+#include <atlstr.h>
+#include <atlfile.h>
 
 using namespace ATL;
 
@@ -23,6 +25,8 @@ protected:
 
 	void init();
 	void cleanup();
+	void loadConfigFile();
+	void getValueFromString(CString& string, LPCWSTR findstr, CString& output);
 
 	void sendKey(DWORD vkCode, bool toggle);
 	void addText(LPCTSTR text, ...);
@@ -44,14 +48,13 @@ public:
 	static void wsCallback(WebSocket::CallbackMsg* msg);
 	void approveConnection(bool accept);
 	void openApproveDlg();
+	void acceptConnection(WebSocket::Client* client);
 	
 	static void onKey(DWORD vkCode, bool toggle, void* pass_obj);
 
 public:
 
 	Cmaindlg() :
-//		client_ip_edit(NULL),
-//		richedit(NULL),
 		about_dlg(NULL),
 		approve_dlg_data(NULL)
 	{

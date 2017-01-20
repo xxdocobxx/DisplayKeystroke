@@ -47,7 +47,7 @@ END_MSG_MAP()
 
 		// init
 		HINSTANCE hinstance = _AtlBaseModule.GetResourceInstance();
-		HICON hIcon = LoadIconW(hinstance, MAKEINTRESOURCE(IDI_ICON1));
+		HICON hIcon = LoadIcon(hinstance, MAKEINTRESOURCE(IDI_ICON1));
 		SetIcon(hIcon, FALSE);
 
 		parent_ref = (Caboutdlg**)lParam;

@@ -18,6 +18,8 @@ function loadLayout(layout)
 				'background-size:100% 100%;' +
 				'background-repeat:no-repeat;' +
 				(hasProperty(layout.default_image, 'url') ? 'background-image:url(\'' + layout_folder_name + layout.default_image.url + '\');' : '' ) +
+				(hasProperty(layout.default_image, 'x') ? 'left:' + layout.default_image.x + 'px;' : '' ) +
+				(hasProperty(layout.default_image, 'y') ? 'top:' + layout.default_image.y + 'px;' : '' ) +
 				(hasProperty(layout.default_image, 'w') ? 'width:' + layout.default_image.w + 'px;' : '' ) +
 				(hasProperty(layout.default_image, 'h') ? 'height:' + layout.default_image.h + 'px;' : '' ) +
 			'}' +
@@ -93,7 +95,7 @@ function loadLayout(layout)
 
 		var container = $('<div>').attr({class: 'key-container key-' + item.text.key_code + (hasProperty(item.text, 'key_code2') ? ' key-' + item.text.key_code2 : '')});
 		container.append($('<div>').attr({class: 'key-image'}).css(image_css)
-		.append($('<div>').attr({class: 'key-text'}).css(text_css).html(item.text.text)));
+		.append($('<div>').attr({class: 'key-text'}).css(text_css).html(hasProperty(item.text, 'text') ? item.text.text : '')));
 		display_area.append(container);
 	}
 
@@ -104,7 +106,7 @@ var ws = null;
 
 function connect()
 {
-	if(typeof host !== 'string' && typeof port !== 'string')
+	if(typeof host_ip !== 'string' && typeof host_port !== 'string')
 		return;
 	
 	if (ws !== null)
@@ -113,7 +115,7 @@ function connect()
 		ws = null;
 	}
 
-	ws = new WebSocket('ws://' + host + ':' + port);
+	ws = new WebSocket('ws://' + host_ip + ':' + host_port);
 	ws.onopen = onConnect;
 	ws.onclose = onDisconnect;
 	ws.onmessage = onMessage;
@@ -174,12 +176,16 @@ function onMessage(e)
 	}
 }
 
+var layout_folder_name = '';
+
 function getCustomLayout()
 {
-	if(typeof layout_folder_name === 'string' && layout_folder_name !== '')
+	if(typeof layout_index === 'number' && typeof layout_folder_names === 'object' && layout_folder_names[layout_index] !== '')
 	{
 		if($('#load_layout_script').length)
 			$('#load_layout_script').remove();
+		
+		layout_folder_name = layout_folder_names[layout_index];
 		
 		if(layout_folder_name.charAt(layout_folder_name.length - 1) !== '/')
 			layout_folder_name += '/';

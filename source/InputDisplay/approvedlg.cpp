@@ -26,11 +26,6 @@ LRESULT Capprovedlg::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL 
 
 void Capprovedlg::OnFinalMessage(HWND hWnd)
 {
-	if(data && *data)
-	{
-		delete *data;
-		*data = NULL;
-	}
 	delete this;
 }
 

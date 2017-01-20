@@ -45,7 +45,8 @@ public:
 		operation_send,
 		operation_connect,
 		operation_disconnect,
-		operation_send_handshake
+		operation_send_handshake,
+		operation_cancel,
 	};
 
 	enum WS_Status
@@ -55,7 +56,7 @@ public:
 		ws_status_approving,
 		ws_status_connected,
 		ws_status_disconnecting,
-		ws_status_disconnected
+		ws_status_disconnected,
 	};
 
 	struct Client;
