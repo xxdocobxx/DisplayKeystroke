@@ -2,7 +2,7 @@
 Display keyboard and mouse input onto browsers and OBS browser source.
 
 ##Screenshots
-![enter image description here](https://github.com/xxdocobxx/DisplayKeystroke/raw/master/assets/screenshot001.jpg)
+![Screenshots](https://github.com/xxdocobxx/DisplayKeystroke/raw/master/assets/screenshot001.jpg)
 
 ## Instructions
  1. Run the application `DisplayKeystroke.exe`.
@@ -45,3 +45,6 @@ If you are familiar with javascript, it is easy to create your own layout.
 }
 ```
  *If a key object property is not set, it will assume to use the default one.*
+
+ ##Demonstration
+![Demonstration](https://youtu.be/s5DkyKBpg9E)
