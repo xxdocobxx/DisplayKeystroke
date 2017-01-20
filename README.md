@@ -9,7 +9,7 @@ Display keyboard and mouse input onto browsers and OBS browser source.
  2. Open the `index.html` on the browser or the OBS browser source.
  3. If you have not set the client ip on the application, you will then receive a request connection from the browser to the application. Otherwise,  the application will auto approve any request from the client ip you have provided.
 
-##Choose a layout
+##Choose a layout from preset
  1. Open `config.js` and find this line: `var layout_index = 0;`
  2. Replace `0` to any number that match one of the `var layout_folder_names` array member. For example, if you want to use `layout/mouse`, then replace it to `var layout_index = 1;`
 
