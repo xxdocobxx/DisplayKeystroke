@@ -48,4 +48,4 @@ If you are familiar with javascript, it is easy to create your own layout.
 
 ##Demonstration
  
-[![Demonstration](https://github.com/xxdocobxx/DisplayKeystroke/raw/master/assets/demonstration.webp)](https://youtu.be/s5DkyKBpg9E "Demonstration")
+[![Demonstration](https://github.com/xxdocobxx/DisplayKeystroke/raw/master/assets/demonstration.jpg)](https://youtu.be/s5DkyKBpg9E "Demonstration")
