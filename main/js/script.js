@@ -74,10 +74,6 @@ function loadLayout(layout)
 			text_css.left = item.text.x;
 		if(hasProperty(item.text, 'y'))
 			text_css.top = item.text.y;
-		if(hasProperty(item.text, 'w'))
-			text_css.width = item.text.w;
-		if(hasProperty(item.text, 'h'))
-			text_css.height = item.text.h;
 		if(hasProperty(item.text, 'size'))
 			text_css['font-size'] = item.text.size;
 		if(hasProperty(item.text, 'bold'))
@@ -132,6 +128,7 @@ function onDisconnect()
 {
 	ws = null;
 	$('#disconnect-screen').removeClass('connected');
+	$('.pressed').removeClass('pressed');
 
 	if(reconnect_timer !== null)
 		clearTimeout(reconnect_timer);
