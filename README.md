@@ -1,5 +1,6 @@
 # DisplayKeystroke
 Display keyboard and mouse input onto browsers and OBS browser source.
+ *Always remember that do not type passwords when broadcasting.*
 
 ##Screenshots
 ![Screenshots](https://github.com/xxdocobxx/DisplayKeystroke/raw/master/assets/screenshot001.jpg)
