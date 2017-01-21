@@ -37,10 +37,13 @@ If you are familiar with javascript, it is easy to create your own layout.
 	},
 	text:
 	{
+		key_code, // the virtual key code, add '1' prefix if it is an extended key
+		key_code2, // some of the numpad keys have different key codes when switching num lock
+		text, // text displayed on the key
 		x, // text position x relatively to the image position
 		y, // text position y relatively to the image position
 		size, // font size
-		bold, // set it to true or false to toggle bold font weight
+		bold, // set it to true or false to toggle bold font
 		font, // font name
 		color, // text color when key released
 		pressed_color, // text color when key pressed
