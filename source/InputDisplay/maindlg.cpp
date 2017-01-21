@@ -33,6 +33,8 @@ void Cmaindlg::init()
 void Cmaindlg::cleanup()
 {
 	richedit = NULL;
+	host_port_edit = NULL;
+	client_ip_edit = NULL;
 
 	if(about_dlg)
 	{
@@ -51,7 +53,6 @@ void Cmaindlg::cleanup()
 	hook.stop();
 
 	websocket.cleanup();
-
 }
 
 LRESULT Cmaindlg::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL & bHandled)
@@ -92,6 +93,8 @@ LRESULT Cmaindlg::OnClickedAbout(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL 
 
 LRESULT Cmaindlg::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL & bHandled)
 {
+	saveConfigFile();
+
 	EndDialog(0);
 	return 0;
 }
@@ -99,25 +102,24 @@ LRESULT Cmaindlg::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL & bHandl
 LRESULT Cmaindlg::OnBnClickedButtonStart(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	CWindow start_btn(hWndCtl);
-	CWindow edit_port(GetDlgItem(IDC_EDIT_PORT));
 	int port;
 
 	switch(websocket.server_status)
 	{
 	case WebSocket::server_status_stopped:
 		start_btn.EnableWindow(FALSE);
-		edit_port.EnableWindow(FALSE);
-		edit_port.GetWindowText(tmp_str, MAX_TMP_STR);
+		host_port_edit.EnableWindow(FALSE);
+		host_port_edit.GetWindowText(tmp_str, MAX_TMP_STR);
 		port = (*tmp_str != 0) ? _wtoi(tmp_str) : -1;
 		if(port < 0 || port > 0xffff)
 		{
 			addText(_T("Valid port numbers are 0 - 65535. 0 = auto\n"));
-			edit_port.EnableWindow(TRUE);
+			host_port_edit.EnableWindow(TRUE);
 		}
 		else if(!websocket.initServer(_wtoi(tmp_str), wsCallback, (void*)this))
 		{
 			addText(_T("Failed to start server.\n"));
-			edit_port.EnableWindow(TRUE);
+			host_port_edit.EnableWindow(TRUE);
 		}
 		else
 			start_btn.SetWindowText(_T("Stop"));
@@ -129,7 +131,7 @@ LRESULT Cmaindlg::OnBnClickedButtonStart(WORD wNotifyCode, WORD wID, HWND hWndCt
 		websocket.cleanup();
 		start_btn.SetWindowText(_T("Start"));
 		start_btn.EnableWindow(TRUE);
-		edit_port.EnableWindow(TRUE);
+		host_port_edit.EnableWindow(TRUE);
 		break;
 	}
 
@@ -340,14 +342,14 @@ void Cmaindlg::acceptConnection(WebSocket::Client* client)
 
 void Cmaindlg::loadConfigFile()
 {
-	CString str;
 	CAtlFile file;
 	char* buf = NULL;
 	ULONGLONG ull_len = 0;
+	CString str;
 
 	try
 	{
-		if(file.Create(_T("config.js"), GENERIC_READ, 0, OPEN_ALWAYS) != S_OK)
+		if(file.Create(_T("config.js"), GENERIC_READ, 0, OPEN_EXISTING) != S_OK)
 			throw 0;
 
 		if(file.GetSize(ull_len) != S_OK)
@@ -364,19 +366,6 @@ void Cmaindlg::loadConfigFile()
 
 		delete[] buf;
 		file.Close();
-
-		// edit port
-		CString host_port(_T("7788"));
-		getValueFromString(str, _T("var host_port ="), host_port);
-		SetDlgItemText(IDC_EDIT_PORT, host_port);
-
-		// client ip
-		CString client_ip(_T("127.0.0.1"));
-		getValueFromString(str, _T("var client_ip ="), client_ip);
-
-		client_ip_edit.Attach(GetDlgItem(IDC_IPADDRESS_CLIENT));
-		client_ip_edit.EnableWindow(FALSE);
-		client_ip_edit.SetWindowText(client_ip);
 	}
 	catch(int err)
 	{
@@ -386,16 +375,95 @@ void Cmaindlg::loadConfigFile()
 			delete[] buf;
 		return;
 	}
+
+	// edit port
+	host_port_edit.Attach(GetDlgItem(IDC_EDIT_PORT));
+	host_port_edit.SetWindowText(getValueFromString(str, _T("var host_port ="), _T("7788")));
+
+	// client ip
+	client_ip_edit.Attach(GetDlgItem(IDC_IPADDRESS_CLIENT));
+	client_ip_edit.SetWindowText(getValueFromString(str, _T("var client_ip ="), _T("127.0.0.1")));
+	client_ip_edit.EnableWindow(FALSE);
+
+	// auto approve
+	UINT auto_approve = (getValueFromString(str, _T("var auto_approve"), _T("false")).CompareNoCase(_T("true")) == 0) ? BST_CHECKED : BST_UNCHECKED;
+	CheckDlgButton(IDC_CHECK_CLIENTIP, auto_approve);
+	client_ip_edit.EnableWindow(auto_approve == BST_CHECKED);
 }
 
-void Cmaindlg::getValueFromString(CString& string, LPCWSTR findstr, CString& output)
+void Cmaindlg::saveConfigFile()
+{
+	CAtlFile file;
+	char* buf = NULL;
+	ULONGLONG ull_len = 0;
+	CString str;
+	TCHAR filename[] = _T("config.js");
+
+	try
+	{
+		if(file.Create(filename, GENERIC_READ, 0, OPEN_EXISTING) != S_OK)
+			throw 0;
+
+		if(file.GetSize(ull_len) != S_OK)
+			throw 1;
+
+		DWORD len = (DWORD)ull_len;
+		buf = new char[len + 1];
+
+		if(file.Read(buf, len) != S_OK)
+			throw 2;
+
+		buf[len] = 0;
+		str = buf;
+
+		file.Close();
+		delete[] buf;
+	}
+	catch(int err)
+	{
+		if(err > 0)
+			file.Close();
+		if(err > 1)
+			delete[] buf;
+		return;
+	}
+
+	// host port
+	CString tmp;
+	host_port_edit.GetWindowText(tmp);
+	replaceValueFromString(str, _T("var host_port ="), tmp);
+
+	// client ip
+	client_ip_edit.GetWindowText(tmp);
+	replaceValueFromString(str, _T("var client_ip ="), tmp);
+
+	// auto approve
+	replaceValueFromString(str, _T("var auto_approve ="), (IsDlgButtonChecked(IDC_CHECK_CLIENTIP) == BST_CHECKED ? _T("true") : _T("false")));
+
+	// write to file
+	if(file.Create(filename, GENERIC_WRITE, 0, CREATE_ALWAYS) != S_OK)
+		return;
+
+	CT2A ascii(str);
+
+	DWORD written_bytes;
+	if(file.Write((LPCVOID)ascii.m_psz, (DWORD)strlen(ascii.m_psz), &written_bytes) != S_OK)
+	{
+		str.Format(_T("file.Write failed. %d\n"), GetLastError());
+		OutputDebugString(str);
+	}
+
+	file.Close();
+}
+
+CString Cmaindlg::getValueFromString(CString& string, LPCWSTR find_str, LPCWSTR def_str)
 {
 	int pos, pos1, pos2;
 
-	pos = string.Find(findstr);
+	pos = string.Find(find_str);
 	if(pos != -1)
 	{
-		pos1 = string.Find(_T("\'"), pos + 1);
+		pos1 = string.Find(_T("\'"), pos + _tcslen(find_str));
 		if(pos1 != -1)
 		{
 			pos2 = string.Find(_T("\'"), pos1 + 1);
@@ -403,7 +471,7 @@ void Cmaindlg::getValueFromString(CString& string, LPCWSTR findstr, CString& out
 			{
 				int len = pos2 - pos1 - 1;
 				if(len > 0)
-					output = string.Mid(pos1 + 1, len);
+					return string.Mid(pos1 + 1, len);
 			}
 		}
 		else
@@ -416,9 +484,57 @@ void Cmaindlg::getValueFromString(CString& string, LPCWSTR findstr, CString& out
 				{
 					int len = pos2 - pos1 - 1;
 					if(len > 0)
-						output = string.Mid(pos1 + 1, len);
+						return string.Mid(pos1 + 1, len);
 				}
 			}
 		}
 	}
+
+	return CString(def_str);
+}
+
+void Cmaindlg::replaceValueFromString(CString& string, LPCWSTR find_str, LPCWSTR replace_str)
+{
+	int pos, pos1, pos2;
+
+	CString new_str;
+	new_str.Format(_T("%s \'%s\'"), find_str, replace_str);
+
+	pos = string.Find(find_str);
+	if(pos != -1)
+	{
+		pos1 = string.Find(_T("\'"), pos + _tcslen(find_str));
+		if(pos1 != -1)
+		{
+			pos2 = string.Find(_T("\'"), pos1 + 1);
+			if(pos2 != -1)
+			{
+				int len = pos2 - pos + 1;
+				if(len > 0)
+				{
+					string.Replace(string.Mid(pos, len), new_str);
+					return;
+				}
+			}
+		}
+		else
+		{
+			pos1 = string.Find(_T("\""), pos + _tcslen(find_str));
+			if(pos1 != -1)
+			{
+				pos2 = string.Find(_T("\""), pos1 + 1);
+				if(pos2 != -1)
+				{
+					int len = pos2 - pos + 1;
+					if(len > 0)
+					{
+						string.Replace(string.Mid(pos, len), new_str);
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	string += new_str + _T(";");
 }

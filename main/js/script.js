@@ -3,6 +3,14 @@ function hasProperty(obj, prop)
 	return (obj.hasOwnProperty(prop) && obj.prop !== '');
 }
 
+function getParameter(val)
+{
+	var regex = new RegExp("[\\?&#]" + val + "=([^&#]*)");
+	var para = regex.exec(document.location.search);
+
+	return para ? decodeURIComponent(para[1]) : null;
+}
+
 function loadLayout(layout)
 {
 	var display_area = $('#display-area');
@@ -177,26 +185,25 @@ var layout_folder_name = '';
 
 function getCustomLayout()
 {
-	if(typeof layout_index === 'number' && typeof layout_folder_names === 'object' && layout_folder_names[layout_index] !== '')
-	{
-		if($('#load_layout_script').length)
-			$('#load_layout_script').remove();
+	layout_folder_name = getParameter('layout');
+	
+	layout_folder_name = 'layout/' + (layout_folder_name === null || layout_folder_name === '' ? 'QWERTY+mouse' : decodeURIComponent(layout_folder_name));
+	
+	if($('#load_layout_script').length)
+		$('#load_layout_script').remove();
 
-		layout_folder_name = layout_folder_names[layout_index];
+	if(layout_folder_name.charAt(layout_folder_name.length - 1) !== '/')
+		layout_folder_name += '/';
 
-		if(layout_folder_name.charAt(layout_folder_name.length - 1) !== '/')
-			layout_folder_name += '/';
+	var script = $('<script>').prop
+	({
+		src: layout_folder_name + 'layout.js',
+		id: 'load_layout_script',
+		type: 'text/javascript',
+		async: false
+	});
 
-		var script = $('<script>').prop
-		({
-			src: layout_folder_name + 'layout.js',
-			id: 'load_layout_script',
-			type: 'text/javascript',
-			async: false
-		});
-
-		document.head.appendChild(script[0]);
-	}
+	document.head.appendChild(script[0]);
 }
 
 window.onload = function(e)

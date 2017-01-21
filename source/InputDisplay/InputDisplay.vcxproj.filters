@@ -82,6 +82,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="InputDisplay.rgs">
       <Filter>Resource Files</Filter>
     </None>

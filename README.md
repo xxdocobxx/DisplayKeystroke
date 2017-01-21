@@ -10,14 +10,14 @@ Display keyboard and mouse input onto browsers and OBS browser source.
  3. If you have not set the client ip on the application, you will then receive a request connection from the browser to the application. Otherwise,  the application will auto approve any request from the client ip you have provided.
 
 ##Choose a layout from preset
- 1. Open `config.js` and find this line: `var layout_index = 0;`
- 2. Replace `0` to any number that match one of the `var layout_folder_names` array member. For example, if you want to use `layout/mouse`, then replace it to `var layout_index = 1;`
+ 1. Almost the same as above except step 2, open one of the `.html` file from the `layout` folder on the browser or the OBS browser source.
 
 ##Customize layout
 
 If you are familiar with javascript, it is easy to create your own layout.
- - Open `layout` folder and make a copy of `QWERTY+mouse` folder then rename it to a new name you choose.
- - Open `layout.js` with any text editor.
+ - Open `layout` folder and make a copy of `QWERTY+mouse` folder and `QWERTY+mouse.html` then rename them to the new names you choose. To make it simply on this tutorial, we will name the folder to `example_layout` and the html file to `example_layout`.html`.
+ - Open `example_layout.html`. Find this line `<meta http-equiv='refresh' content='0; url=../index.html?layout=QWERTY+mouse'>`. Then we change `QWERTY+mouse` to `example_layout`, so the new line will become `<meta http-equiv='refresh' content='0; url=../index.html?layout=example_layout'>`
+ - Open `layout.js` from `example_layout` folder with any text editor.
  - Remove unwanted key objects from the `items` array. A key object includes a `image` and a `text` object, it should look like `{ image: {...}, text: { key_code: '1b', ...} }`.
  - Set the properties of a key object to change the appearance of a key.
 

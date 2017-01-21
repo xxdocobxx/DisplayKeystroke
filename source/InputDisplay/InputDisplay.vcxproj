@@ -254,6 +254,9 @@
     <ResourceCompile Include="InputDisplay.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="InputDisplay.rgs" />
   </ItemGroup>
   <ItemGroup>

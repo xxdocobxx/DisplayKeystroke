@@ -26,11 +26,14 @@ protected:
 	void init();
 	void cleanup();
 	void loadConfigFile();
-	void getValueFromString(CString& string, LPCWSTR findstr, CString& output);
+	void saveConfigFile();
+	CString getValueFromString(CString& string, LPCWSTR find_str, LPCWSTR def_str);
+	void replaceValueFromString(CString& string, LPCWSTR find_str, LPCWSTR replace_str);
 
 	void sendKey(DWORD vkCode, bool toggle);
 	void addText(LPCTSTR text, ...);
 
+	CWindow host_port_edit;
 	CWindow client_ip_edit;
 	CWindow richedit;
 
