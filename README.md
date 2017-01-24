@@ -18,7 +18,8 @@ Display keyboard and mouse input onto browsers and OBS browser source.
 
 If you are familiar with javascript, it is easy to create your own layout.
  - Open `layout` folder and make a copy of `QWERTY+mouse` folder and `QWERTY+mouse.html` then rename them to the new names you choose. To make it simply on this tutorial, we will name the folder to `example_layout` and the html file to `example_layout.html`.
- - Open `example_layout.html`. Find this line `<meta http-equiv='refresh' content='0; url=../index.html?layout=QWERTY+mouse'>`. Change `QWERTY+mouse` to `example_layout`, so the new line will become `<meta http-equiv='refresh' content='0; url=../index.html?layout=example_layout'>`
+ - Open `example_layout.html` with any text editor.
+ - Find this line `<meta http-equiv='refresh' content='0; url=../index.html?layout=QWERTY+mouse'>`. Change `QWERTY+mouse` to `example_layout`, so the new line will become `<meta http-equiv='refresh' content='0; url=../index.html?layout=example_layout'>`
  - Open `layout.js` from `example_layout` folder with any text editor.
  - Remove unwanted key objects from the `items` array. A key object includes an `image` and a `text` object, it should look like `{ image: {...}, text: { key_code: '1b', ...} }`.
  - Set the properties of a key object to change the appearance of a key.
