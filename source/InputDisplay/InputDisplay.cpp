@@ -47,6 +47,16 @@ CInputDisplayModule _AtlModule;
 extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
 								LPTSTR /*lpCmdLine*/, int nShowCmd)
 {
+	HANDLE mutex = CreateMutex(NULL, TRUE, _T("Keystroke Server"));
+	if(mutex == NULL || GetLastError() == ERROR_ALREADY_EXISTS)
+	{
+		HWND current_hwnd = FindWindow(0, _T("Keystroke Server"));
+		if(current_hwnd)
+			SetForegroundWindow(current_hwnd);
+		return 0;
+	}
+
+
 //	InitCommonControls();
 	HINSTANCE m_hLibRichEdit = LoadLibrary(_T("riched20.dll"));
 

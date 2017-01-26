@@ -5,10 +5,37 @@ function hasProperty(obj, prop)
 
 function getParameter(val)
 {
-	var regex = new RegExp("[\\?&#]" + val + "=([^&#]*)");
+	var regex = new RegExp('[\\?&#]' + val + '=([^&#]*)');
 	var para = regex.exec(document.location.search);
 
 	return para ? decodeURIComponent(para[1]) : null;
+}
+
+// custom layout
+
+var layout_folder_name = '';
+
+function getCustomLayout()
+{
+	layout_folder_name = getParameter('layout');
+	
+	layout_folder_name = 'layout/' + (layout_folder_name === null || layout_folder_name === '' ? 'QWERTY+mouse' : decodeURIComponent(layout_folder_name));
+	
+	if($('#load_layout_script').length)
+		$('#load_layout_script').remove();
+
+	if(layout_folder_name.charAt(layout_folder_name.length - 1) !== '/')
+		layout_folder_name += '/';
+
+	var script = $('<script>').prop
+	({
+		src: layout_folder_name + 'layout.js',
+		id: 'load_layout_script',
+		type: 'text/javascript',
+		async: false
+	});
+
+	document.head.appendChild(script[0]);
 }
 
 function loadLayout(layout)
@@ -106,108 +133,55 @@ function loadLayout(layout)
 	$('head').append($('<style>').attr('id', 'inputdisplay-style').html(style));
 }
 
-var ws = null;
+// KeystrokeClient events
 
-function connect()
+KeystrokeClient.onConnect = function()
 {
-	if(typeof host_ip !== 'string' && typeof host_port !== 'string')
-		return;
+	$('#disconnect-screen').addClass('connected');
+};
 
-	if (ws !== null)
-	{
-		ws.close();
-		ws = null;
-	}
-
-	ws = new WebSocket('ws://' + host_ip + ':' + host_port);
-	ws.onopen = onConnect;
-	ws.onclose = onDisconnect;
-	ws.onmessage = onMessage;
-}
-
-function onConnect()
+KeystrokeClient.onDisconnect = function()
 {
-//	$('#disconnect-screen').addClass('connected');
-}
-
-var reconnect_timer = null;
-
-function onDisconnect()
-{
-	ws = null;
 	$('#disconnect-screen').removeClass('connected');
 	$('.pressed').removeClass('pressed');
-
-	if(reconnect_timer !== null)
-		clearTimeout(reconnect_timer);
-	reconnect_timer = setTimeout(function() { reconnect_timer = null; connect(); }, 10000);
-}
+};
 
 var mouse_wheel_up_timer = null;
 var mouse_wheel_down_timer = null;
 
-function onMessage(e)
+KeystrokeClient.onKeyDown = function(key_code)
 {
-	if(typeof e === 'object' && typeof e.data === 'string')
+	var container = $('.key-' + key_code);
+	if(container.length)
 	{
-		if(e.data.length === 4)
+		container.addClass('pressed');
+
+		switch(key_code)
 		{
-			var toggle = (e.data[0] === '+');
-			var key_code = (e.data[1] !== '0' ? '1' : '') + e.data[2] + e.data[3];
+		case '0a': // mouse wheel up
+			if(mouse_wheel_up_timer !== null)
+				clearTimeout(mouse_wheel_up_timer);
+			mouse_wheel_up_timer = setTimeout(function() { mouse_wheel_up_timer = null; container.removeClass('pressed'); }, 100);
+			break;
 
-			var container = $('.key-' + key_code);
-			if(container.length)
-			{
-				container.toggleClass('pressed', toggle);
-
-				switch(key_code)
-				{
-				case '0a':
-					if(mouse_wheel_up_timer !== null)
-						clearTimeout(mouse_wheel_up_timer);
-					mouse_wheel_up_timer = setTimeout(function() { mouse_wheel_up_timer = null; container.removeClass('pressed'); }, 100);
-					break;
-
-				case '0b':
-					if(mouse_wheel_down_timer !== null)
-						clearTimeout(mouse_wheel_down_timer);
-					mouse_wheel_down_timer = setTimeout(function() { mouse_wheel_down_timer = null; container.removeClass('pressed'); }, 100);
-					break;
-				}
-			}
+		case '0b': // mouse wheel down
+			if(mouse_wheel_down_timer !== null)
+				clearTimeout(mouse_wheel_down_timer);
+			mouse_wheel_down_timer = setTimeout(function() { mouse_wheel_down_timer = null; container.removeClass('pressed'); }, 100);
+			break;
 		}
-		else if(e.data === 'server approved')
-			$('#disconnect-screen').addClass('connected');
 	}
-}
+};
 
-var layout_folder_name = '';
-
-function getCustomLayout()
+KeystrokeClient.onKeyUp = function(key_code)
 {
-	layout_folder_name = getParameter('layout');
-	
-	layout_folder_name = 'layout/' + (layout_folder_name === null || layout_folder_name === '' ? 'QWERTY+mouse' : decodeURIComponent(layout_folder_name));
-	
-	if($('#load_layout_script').length)
-		$('#load_layout_script').remove();
-
-	if(layout_folder_name.charAt(layout_folder_name.length - 1) !== '/')
-		layout_folder_name += '/';
-
-	var script = $('<script>').prop
-	({
-		src: layout_folder_name + 'layout.js',
-		id: 'load_layout_script',
-		type: 'text/javascript',
-		async: false
-	});
-
-	document.head.appendChild(script[0]);
-}
+	var container = $('.key-' + key_code);
+	if(container.length)
+		container.removeClass('pressed');
+};
 
 window.onload = function(e)
 {
 	getCustomLayout();
-	connect();
+	KeystrokeClient.start(host_ip, host_port);
 };

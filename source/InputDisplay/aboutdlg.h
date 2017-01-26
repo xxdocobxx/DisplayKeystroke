@@ -17,6 +17,12 @@ protected:
 
 	Caboutdlg** parent_ref;
 
+	void openLink(LPNMHDR pNMHDR)
+	{
+		PNMLINK pNMLink = (PNMLINK)pNMHDR;
+		ShellExecute(NULL, _T("open"), pNMLink->item.szUrl, NULL, NULL, SW_SHOW);
+	}
+
 public:
 	Caboutdlg() :
 		parent_ref(NULL)
@@ -33,6 +39,8 @@ BEGIN_MSG_MAP(Caboutdlg)
 	MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 	COMMAND_HANDLER(IDCANCEL, BN_CLICKED, OnClickedCancel)
 	CHAIN_MSG_MAP(CAxDialogImpl<Caboutdlg>)
+	NOTIFY_HANDLER(IDC_SYSLINK_FEEDBACK, NM_CLICK, OnNMClickSyslinkFeedback)
+	NOTIFY_HANDLER(IDC_SYSLINK_FEEDBACK, NM_RETURN, OnNMReturnSyslinkFeedback)
 END_MSG_MAP()
 
 // Handler prototypes:
@@ -68,6 +76,18 @@ END_MSG_MAP()
 	LRESULT OnClickedCancel(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 	{
 		DestroyWindow();
+		return 0;
+	}
+
+	LRESULT OnNMClickSyslinkFeedback(int /*idCtrl*/, LPNMHDR pNMHDR, BOOL& /*bHandled*/)
+	{
+		openLink(pNMHDR);
+		return 0;
+	}
+
+	LRESULT OnNMReturnSyslinkFeedback(int /*idCtrl*/, LPNMHDR pNMHDR, BOOL& /*bHandled*/)
+	{
+		openLink(pNMHDR);
 		return 0;
 	}
 };

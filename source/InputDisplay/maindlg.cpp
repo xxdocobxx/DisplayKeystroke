@@ -373,7 +373,6 @@ void Cmaindlg::loadConfigFile()
 			file.Close();
 		if(err > 1)
 			delete[] buf;
-		return;
 	}
 
 	// edit port
@@ -425,7 +424,6 @@ void Cmaindlg::saveConfigFile()
 			file.Close();
 		if(err > 1)
 			delete[] buf;
-		return;
 	}
 
 	// host port
@@ -536,5 +534,5 @@ void Cmaindlg::replaceValueFromString(CString& string, LPCWSTR find_str, LPCWSTR
 		}
 	}
 
-	string += new_str + _T(";");
+	string += new_str + _T(";\r\n");
 }
