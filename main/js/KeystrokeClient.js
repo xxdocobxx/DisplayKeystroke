@@ -6,6 +6,21 @@ var KeystrokeClient = new function()
 	_this._reconnect_timer = null;
 	_this._host_ip = null;
 	_this._host_port = null;
+	
+	_this._resetModifierKeysStates = function()
+	{
+		_this._modifier_keys_states = { alt: 0, ctrl: 0, shift: 0 };
+	};
+	_this._resetModifierKeysStates();
+	
+	_this.testModifierKeys = function(alt, ctrl, shift)
+	{
+		return (
+			((!alt && !_this._modifier_keys_states.alt) || (alt && _this._modifier_keys_states.alt)) && 
+			((!ctrl && !_this._modifier_keys_states.ctrl) || (ctrl && _this._modifier_keys_states.ctrl)) && 
+			((!shift && !_this._modifier_keys_states.shift) || (shift && _this._modifier_keys_states.shift))
+		);
+	};
 
 	_this.start = function(host_ip, host_port)
 	{
@@ -34,6 +49,7 @@ var KeystrokeClient = new function()
 
 	_this._onOpen = function()
 	{
+		_this._resetModifierKeysStates();
 	};
 
 	_this._onClose = function()
@@ -43,6 +59,8 @@ var KeystrokeClient = new function()
 		if(_this._reconnect_timer !== null)
 			clearTimeout(_this._reconnect_timer);
 		_this._reconnect_timer = setTimeout(function() { _this._reconnect_timer = null; _this.start(_this._host_ip, _this._host_port); }, 10000);
+
+		_this._resetModifierKeysStates();
 
 		if(typeof _this.onDisconnect === 'function')
 			_this.onDisconnect();
@@ -59,13 +77,67 @@ var KeystrokeClient = new function()
 
 				if(toggle)
 				{
+					switch(key_code)
+					{
+					case 'a4': // left alt
+						_this._modifier_keys_states.alt |= 1;
+						break;
+					
+					case '1a5': // right alt
+						_this._modifier_keys_states.alt |= 2;
+						break;
+
+					case 'a2': // left ctrl
+						_this._modifier_keys_states.ctrl |= 1;
+						break;
+					
+					case '1a3': // right ctrl
+						_this._modifier_keys_states.ctrl |= 2;
+						break;
+
+					case 'a0': // left shift
+						_this._modifier_keys_states.shift |= 1;
+						break;
+					
+					case '1a1': // right shift
+						_this._modifier_keys_states.shift |= 2;
+						break;
+					}
+
 					if(typeof _this.onKeyDown === 'function')
-						_this.onKeyDown(key_code);
+						_this.onKeyDown(key_code, _this._modifier_keys_states);
 				}
 				else
 				{
+					switch(key_code)
+					{
+					case 'a4': // left alt
+						_this._modifier_keys_states.alt &= ~1;
+						break;
+					
+					case '1a5': // right alt
+						_this._modifier_keys_states.alt &= ~2;
+						break;
+
+					case 'a2': // left ctrl
+						_this._modifier_keys_states.ctrl &= ~1;
+						break;
+					
+					case '1a3': // right ctrl
+						_this._modifier_keys_states.ctrl &= ~2;
+						break;
+
+					case 'a0': // left shift
+						_this._modifier_keys_states.shift &= ~1;
+						break;
+					
+					case '1a1': // right shift
+						_this._modifier_keys_states.shift &= ~2;
+						break;
+					}
+
 					if(typeof _this.onKeyUp === 'function')
-						_this.onKeyUp(key_code);
+						_this.onKeyUp(key_code, _this._modifier_keys_states);
 				}
 			}
 			else if(e.data === 'server approved')
