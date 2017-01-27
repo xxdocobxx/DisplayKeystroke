@@ -710,6 +710,14 @@ bool WebSocket::sendMessage(const char* msg, DWORD len, Client* client)
 		for(std::list<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 		{
 			client = (*it);
+
+			DWORD result;
+			if((result = WaitForSingleObject(client->lock_mutex, INFINITE)) != WAIT_OBJECT_0)
+			{
+				log(L"sendMessage - WaitForSingleObject client->lock_mutex function %d\n", result);
+				continue;
+			}
+
 			if(client->ws_status == ws_status_connected)
 			{
 				OverlappedDetail* ol = client->createOverlapped(operation_send);
@@ -718,6 +726,8 @@ bool WebSocket::sendMessage(const char* msg, DWORD len, Client* client)
 				ol->buffer.len = buflen;
 				sendSocket(ol);
 			}
+
+			ReleaseMutex(client->lock_mutex);
 		}
 
 		if(buffer)
@@ -725,13 +735,25 @@ bool WebSocket::sendMessage(const char* msg, DWORD len, Client* client)
 	}
 	else
 	{
+		DWORD result;
+		if((result = WaitForSingleObject(client->lock_mutex, INFINITE)) != WAIT_OBJECT_0)
+		{
+			log(L"sendMessage - WaitForSingleObject client->lock_mutex function %d\n", result);
+			return true;
+		}
+
+		bool result1;
 		if(client->ws_status == ws_status_connected)
 		{
 			OverlappedDetail* ol = client->createOverlapped(operation_send);
 			ol->buffer.buf = buffer;
 			ol->buffer.len = buflen;
-			return sendSocket(ol);
+			result1 = sendSocket(ol);
 		}
+
+		ReleaseMutex(client->lock_mutex);
+
+		return result1;
 	}
 
 	return true;

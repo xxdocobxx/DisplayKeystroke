@@ -43,11 +43,114 @@ LRESULT Hook::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 		PKBDLLHOOKSTRUCT data = (PKBDLLHOOKSTRUCT)lParam;
 		bool toggle = (data->flags & LLKHF_UP) ? false : true;
 		DWORD key = (data->flags & LLKHF_EXTENDED) ? data->vkCode | 0x100 : data->vkCode;
-		
-		if(hook.keymap[key] != toggle)
+
+		if(hook.keymap[key] != toggle && data->scanCode != 0x22a && data->scanCode != 0x236)
 		{
 			hook.keymap[key] = toggle;
 			hook.onKey(key, toggle, hook.pass_object);
+		}
+
+		if(!toggle)
+		{
+			DWORD key2 = 0;
+
+			switch(key)
+			{
+			case 0x60:
+				key2 = 0x2d;
+				break;
+
+			case 0x61:
+				key2 = 0x23;
+				break;
+
+			case 0x62:
+				key2 = 0x28;
+				break;
+
+			case 0x63:
+				key2 = 0x22;
+				break;
+
+			case 0x64:
+				key2 = 0x25;
+				break;
+
+			case 0x65:
+				key2 = 0x0c;
+				break;
+
+			case 0x66:
+				key2 = 0x27;
+				break;
+
+			case 0x67:
+				key2 = 0x24;
+				break;
+
+			case 0x68:
+				key2 = 0x26;
+				break;
+
+			case 0x69:
+				key2 = 0x21;
+				break;
+
+			case 0x6e:
+				key2 = 0x2e;
+				break;
+
+			case 0x2d:
+				key2 = 0x60;
+				break;
+
+			case 0x23:
+				key2 = 0x61;
+				break;
+
+			case 0x28:
+				key2 = 0x62;
+				break;
+
+			case 0x22:
+				key2 = 0x63;
+				break;
+
+			case 0x25:
+				key2 = 0x64;
+				break;
+
+			case 0x0c:
+				key2 = 0x65;
+				break;
+
+			case 0x27:
+				key2 = 0x66;
+				break;
+
+			case 0x24:
+				key2 = 0x67;
+				break;
+
+			case 0x26:
+				key2 = 0x68;
+				break;
+
+			case 0x21:
+				key2 = 0x69;
+				break;
+
+			case 0x2e:
+				key2 = 0x6e;
+				break;
+
+			}
+
+			if(key2 != 0 && hook.keymap[key2] != toggle)
+			{
+				hook.keymap[key2] = toggle;
+				hook.onKey(key2, toggle, hook.pass_object);
+			}
 		}
 	}
 
