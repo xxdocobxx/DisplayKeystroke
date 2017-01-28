@@ -56,3 +56,7 @@ If you are familiar with javascript, it is easy to create your own layout.
 ##Demonstration
  
 [![Demonstration](https://github.com/xxdocobxx/DisplayKeystroke/raw/master/assets/demonstration.jpg)](https://youtu.be/s5DkyKBpg9E "Demonstration")
+
+##Buy me a coffee?
+
+It is not required to do so but if you think that this app is useful to you and are likely to consider a tip as a small and unexpected bonus, here is the link: https://twitch.streamlabs.com/xxdocobxx
