@@ -15,7 +15,6 @@ Display keyboard and mouse input onto browsers and OBS browser source.
  1. Almost the same as above except step 2, open one of the `.html` file from the `layout` folder on the browser or the OBS browser source.
 
 ##Customize layout
-
 If you are familiar with javascript, it is easy to create your own layout.
  - Open `layout` folder and make a copy of `QWERTY+mouse` folder and `QWERTY+mouse.html` then rename them to the new names you choose. To make it simply on this tutorial, we will name the folder to `example_layout` and the html file to `example_layout.html`.
  - Open `example_layout.html` with any text editor.
@@ -54,9 +53,7 @@ If you are familiar with javascript, it is easy to create your own layout.
  *If a key object property is not set, it will assume to use the default one.*
 
 ##Demonstration
- 
 [![Demonstration](https://github.com/xxdocobxx/DisplayKeystroke/raw/master/assets/demonstration.jpg)](https://youtu.be/s5DkyKBpg9E "Demonstration")
 
 ##Buy me a coffee?
-
 It is not required to do so but if you think that this app is useful to you and are likely to consider a tip as a small and unexpected bonus, here is the link: https://twitch.streamlabs.com/xxdocobxx
