@@ -32,8 +32,8 @@ If you are familiar with javascript, it is easy to create your own layout.
 		y, // image position y
 		w, // image width
 		h, // image height
-		url, // image path when key released
-		pressed_url, // image name when key pressed
+		url, // image path name when key released
+		pressed_url, // image path name when key pressed
 	},
 	text:
 	{
