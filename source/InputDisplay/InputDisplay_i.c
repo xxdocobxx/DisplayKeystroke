@@ -6,7 +6,7 @@
 
 
  /* File created by MIDL compiler version 8.00.0603 */
-/* at Fri Jan 20 12:22:17 2017
+/* at Sun Jun 11 05:35:35 2017
  */
 /* Compiler settings for InputDisplay.idl:
     Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0603 

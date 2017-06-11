@@ -7,7 +7,10 @@ public:
 	Hook();
 	~Hook();
 
-	void init(HINSTANCE hinstance, void (*onKeyFunc)(DWORD vkCode, bool toggle, void* obj), void* pass_obj);
+	typedef void(*ONKEY)(DWORD vkCode, bool toggle, void* pass_obj);
+	typedef void(*ONMOUSEMOVE)(POINT point, void* pass_obj);
+
+	void init(HINSTANCE hinstance, ONKEY onKeyFunc, ONMOUSEMOVE onMouseMoveFunc, void* pass_obj);
 	void start();
 	void stop();
 
@@ -22,7 +25,8 @@ protected:
 	void* pass_object;
 	bool keymap[512];
 
-	void (*onKey)(DWORD vkCode, bool toggle, void* pass_obj);
+	ONKEY onKey;
+	ONMOUSEMOVE onMouseMove;
 };
 
 extern Hook hook;

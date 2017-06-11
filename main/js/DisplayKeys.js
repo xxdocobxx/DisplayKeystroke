@@ -180,6 +180,20 @@ KeystrokeClient.onKeyUp = function(key_code)
 		container.removeClass('pressed');
 };
 
+KeystrokeClient.onMouseMove = function(data)
+{
+/*
+	var display_mouse = $('#display-mouse');
+	if(display_mouse.length === 0)
+	{
+		display_mouse = $('<div></div>').prop({id: 'display-mouse'}).css({position: 'fixed', color: '#0f0'});
+		$('#display-area').append(display_mouse);
+	}
+	
+	display_mouse.text('x:' + data.x + ',y:' + data.y + ',dx:' + data.delta_x + ',dy:' + data.delta_y);
+*/
+};
+
 window.onload = function(e)
 {
 	getCustomLayout();

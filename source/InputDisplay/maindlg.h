@@ -31,20 +31,24 @@ protected:
 	void replaceValueFromString(CString& string, LPCWSTR find_str, LPCWSTR replace_str);
 
 	void sendKey(DWORD vkCode, bool toggle);
+	void sendMouseCoord(POINT point);
 	void addText(LPCTSTR text, ...);
 
 	CWindow host_port_edit;
 	CWindow client_ip_edit;
 	CWindow richedit;
 
+	Caboutdlg* about_dlg;
+	Capprovedlg::ApproveDlgData* approve_dlg_data;
+	std::list<WebSocket::Client*> requesting_clients;
+
+	RECT screen;
+	POINT last_mouse_pos;
+
 #define MAX_TMP_STR	4096
 	WCHAR tmp_str[MAX_TMP_STR];
 
 #define WM_OPEN_APPROVEDLG			(WM_APP + 1)
-
-	Caboutdlg* about_dlg;
-	Capprovedlg::ApproveDlgData* approve_dlg_data;
-	std::list<WebSocket::Client*> requesting_clients;
 
 public:
 
@@ -54,6 +58,7 @@ public:
 	void acceptConnection(WebSocket::Client* client);
 	
 	static void onKey(DWORD vkCode, bool toggle, void* pass_obj);
+	static void onMouseMove(POINT point, void* pass_obj);
 
 public:
 

@@ -70,7 +70,7 @@ var KeystrokeClient = new function()
 	{
 		if(typeof e === 'object' && typeof e.data === 'string')
 		{
-			if(e.data.length === 4)
+			if(e.data.length === 4) // keyboard or mouse button event
 			{
 				var toggle = (e.data[0] === '+');
 				var key_code = (e.data[1] !== '0' ? '1' : '') + e.data[2] + e.data[3];
@@ -139,6 +139,29 @@ var KeystrokeClient = new function()
 					if(typeof _this.onKeyUp === 'function')
 						_this.onKeyUp(key_code, _this._modifier_keys_states);
 				}
+			}
+			else if(e.data.length === 16) // mouse move event
+			{
+				var data = {};
+				data.x =  parseInt(e.data.substring(0, 4), 16);
+				data.y =  parseInt(e.data.substring(4, 8), 16);
+				
+				data.delta_x = parseInt(e.data.substring(8, 12), 16);
+				data.delta_y = parseInt(e.data.substring(12, 16), 16);
+				
+				for(var n in data)
+				{
+					if(isNaN(data[n]))
+						return;
+				}
+				
+				if(data.delta_x & 0x8000)
+					data.delta_x -= 0x10000;
+				if(data.delta_y & 0x8000)
+					data.delta_y -= 0x10000;
+				
+				if(typeof _this.onMouseMove === 'function')
+					_this.onMouseMove(data);
 			}
 			else if(e.data === 'server approved')
 			{

@@ -15,10 +15,11 @@ Hook::~Hook()
 {
 }
 
-void Hook::init(HINSTANCE hinstance, void(*onKeyFunc)(DWORD vkCode, bool toggle, void* obj), void* pass_obj)
+void Hook::init(HINSTANCE hinstance, ONKEY onKeyFunc, ONMOUSEMOVE onMouseMoveFunc, void* pass_obj)
 {
 	hinst = hinstance;
 	onKey = onKeyFunc;
+	onMouseMove = onMouseMoveFunc;
 	pass_object = pass_obj;
 }
 
@@ -168,6 +169,7 @@ LRESULT Hook::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 		switch(wParam)
 		{
 		case WM_MOUSEMOVE:
+			hook.onMouseMove(data->pt, hook.pass_object);
 			goto no_toggle;
 		case WM_LBUTTONDOWN:
 			btn = 0x1;

@@ -25,8 +25,17 @@ void Cmaindlg::init()
 	richedit.SendMessage(EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&format);
 	richedit.SendMessage(EM_SETBKGNDCOLOR, 0, RGB(0, 0, 0));
 
+	// get screen rectangle
+	screen.left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	screen.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	screen.right = GetSystemMetrics(SM_CXVIRTUALSCREEN) + screen.left - 1;
+	screen.bottom = GetSystemMetrics(SM_CYVIRTUALSCREEN) + screen.top - 1;
+
+	last_mouse_pos.x = screen.left;
+	last_mouse_pos.y = screen.top;
+
 	// hook
-	hook.init(hinstance, onKey, this);
+	hook.init(hinstance, onKey, onMouseMove, this);
 	hook.start();
 }
 
@@ -179,6 +188,40 @@ void Cmaindlg::sendKey(DWORD vkCode, bool toggle)
 	DWORD len = sizeof(msg);
 	char toggle_char = (toggle ? '+' : '-');
 	sprintf_s(msg, len, "%c%03x", toggle_char, vkCode);
+
+	websocket.sendMessage(msg, len);
+}
+
+void Cmaindlg::onMouseMove(POINT point, void* pass_obj)
+{
+	((Cmaindlg*)pass_obj)->sendMouseCoord(point);
+}
+
+void Cmaindlg::sendMouseCoord(POINT point)
+{
+	if(IsDlgButtonChecked(IDC_CHECK_SEND_MOUSE_COORD) == BST_UNCHECKED)
+	{
+		last_mouse_pos.x = point.x;
+		last_mouse_pos.y = point.y;
+		return;
+	}
+
+	int x = point.x;
+	int y = point.y;
+	int dx = point.x - last_mouse_pos.x;
+	int dy = point.y - last_mouse_pos.y;
+
+	x = max(x, screen.left);
+	x = min(x, screen.right);
+	y = max(y, screen.top);
+	y = min(y, screen.bottom);
+
+	last_mouse_pos.x = x;
+	last_mouse_pos.y = y;
+
+	char msg[] = "xxxxyyyydxdxdydy";
+	DWORD len = sizeof(msg);
+	sprintf_s(msg, len, "%04x%04x%04x%04x", x & 0xffff, y & 0xffff, dx & 0xffff, dy & 0xffff);
 
 	websocket.sendMessage(msg, len);
 }
@@ -388,6 +431,9 @@ void Cmaindlg::loadConfigFile()
 	UINT auto_approve = (getValueFromString(str, _T("var auto_approve"), _T("false")).CompareNoCase(_T("true")) == 0) ? BST_CHECKED : BST_UNCHECKED;
 	CheckDlgButton(IDC_CHECK_CLIENTIP, auto_approve);
 	client_ip_edit.EnableWindow(auto_approve == BST_CHECKED);
+
+	// send mouse coordinates
+	CheckDlgButton(IDC_CHECK_SEND_MOUSE_COORD, (getValueFromString(str, _T("var send_mouse_coordinates"), _T("false")).CompareNoCase(_T("true")) == 0) ? BST_CHECKED : BST_UNCHECKED);
 }
 
 void Cmaindlg::saveConfigFile()
@@ -437,6 +483,9 @@ void Cmaindlg::saveConfigFile()
 
 	// auto approve
 	replaceValueFromString(str, _T("var auto_approve ="), (IsDlgButtonChecked(IDC_CHECK_CLIENTIP) == BST_CHECKED ? _T("true") : _T("false")));
+
+	// send mouse coordinates
+	replaceValueFromString(str, _T("var send_mouse_coordinates ="), (IsDlgButtonChecked(IDC_CHECK_SEND_MOUSE_COORD) == BST_CHECKED ? _T("true") : _T("false")));
 
 	// write to file
 	if(file.Create(filename, GENERIC_WRITE, 0, CREATE_ALWAYS) != S_OK)
