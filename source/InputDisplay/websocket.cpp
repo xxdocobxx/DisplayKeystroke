@@ -425,7 +425,7 @@ bool WebSocket::onRecv(OverlappedDetail* overlapped, DWORD bytes_recv)
 
 		if(!overlapped->client->recv_buffer.empty())
 		{
-			overlapped->client->recv_buffer.insert(overlapped->client->recv_buffer.end() - 1, buffer, buffer + bytes_recv);
+			overlapped->client->recv_buffer.insert(overlapped->client->recv_buffer.end(), buffer, buffer + bytes_recv);
 			overlapped->client->recv_buffer.push_back(0);
 			buffer = overlapped->client->recv_buffer.data();
 			len = overlapped->client->recv_buffer.size() - 1;
@@ -478,68 +478,90 @@ bool WebSocket::processRecv(OverlappedDetail* overlapped, char* buffer, DWORD bu
 	if(client->ws_status == ws_status_connecting)
 	{
 		static char head[] = "GET / HTTP/1.1";
-		DWORD len = sizeof(head) - 1;
-		if(buflen >= len && strncmp(head, buffer, len) == 0 && *(unsigned long*)(buffer + buflen - 4) == 0x0a0d0a0d)
+		static DWORD head_len = sizeof(head) - 1;
+
+		try
 		{
-			static char key[] = "Sec-WebSocket-Key: ";
-			len = sizeof(key) - 1;
-			char* begin = strstr(buffer, key);
-			if(begin == NULL)
-				goto pending_recv;
-
-			begin += len;
-			char* bufend = buffer + buflen;
-			while(!(*begin > 32 && *begin < 127) && *begin != 0)
-				++begin;
-			if(*begin == 0 || begin + 24 > buffer + buflen)
-				goto pending_recv;;
-
-			char code[25];
-			int i = 0;
-			for(; i < 24 && begin[i] > 32 && begin[i] < 127; ++i)
-				code[i] = begin[i];
-			if(i != 24) // invaild format
+			if(buflen >= head_len && strncmp(head, buffer, head_len) == 0)
 			{
-				closeClient(client);
+				// check if message ended
+				char* tail = buffer + buflen - 4;
+				int i;
+				for(i = 0; i < 4; ++i)
+				{
+					if(tail[i] != 0xa && tail[i] != 0xd)
+					{
+						if(buflen > 0xffff)
+							throw;
+						if(client->recv_buffer.empty())
+							client->recv_buffer.assign(buffer, buffer + buflen);
+						return true;
+					}
+				}
+
+				static char key[] = "Sec-WebSocket-Key: ";
+				static DWORD key_len = sizeof(key) - 1;
+				char* begin = strstr(buffer, key);
+				if(begin == NULL)
+					throw;
+
+				begin += key_len;
+				char* bufend = buffer + buflen;
+				while(!(*begin > 32 && *begin < 127) && *begin != 0)
+					++begin;
+				if(*begin == 0 || begin + 24 > buffer + buflen)
+					throw;
+
+				char code[25];
+				for(i = 0; i < 24 && begin[i] > 32 && begin[i] < 127; ++i)
+					code[i] = begin[i];
+				if(i != 24)
+					throw;
+				code[24] = 0;
+
+				client->recv_buffer.clear();
+
+				char handshake[29];
+				WebSocketHandshake::generate(code, handshake);
+				handshake[28] = 0;
+
+				OverlappedDetail* ol = client->createOverlapped(operation_send_handshake);
+				ol->buffer.buf = new char[BUFSIZ];
+				ol->buffer.len = BUFSIZ;
+				sprintf_s(ol->buffer.buf, ol->buffer.len,
+					"HTTP/1.1 101 Switching Protocols\r\n"
+					"Upgrade: websocket\r\n"
+					"Connection: Upgrade\r\n"
+					"Sec-WebSocket-Accept: %s\r\n\r\n"
+					, handshake);
+				ol->buffer.len = strlen(ol->buffer.buf);
+
+				QueryPerformanceCounter(&client->timestamp);
+
+				if(!sendSocket(ol))
+					return false;
+
+				client->ws_status = ws_status_handshake_sent;
+
+				CallbackMsg cb_msg;
+				cb_msg.status = cbs_ws_connecting;
+				cb_msg.data = (void*)client;
+				callbackStatus(&cb_msg);
+
+				return true;
+			}
+			else // not handshake message
+			{
+				client->recv_buffer.clear();
 				return false;
 			}
-			code[24] = 0;
-
-			client->recv_buffer.clear();
-
-			char handshake[29];
-			WebSocketHandshake::generate(code, handshake);
-			handshake[28] = 0;
-
-			OverlappedDetail* ol = client->createOverlapped(operation_send_handshake);
-			ol->buffer.buf = new char[BUFSIZ];
-			ol->buffer.len = BUFSIZ;
-			sprintf_s(ol->buffer.buf, ol->buffer.len,
-				"HTTP/1.1 101 Switching Protocols\r\n"
-				"Upgrade: websocket\r\n"
-				"Connection: Upgrade\r\n"
-				"Sec-WebSocket-Accept: %s\r\n\r\n"
-				, handshake);
-			ol->buffer.len = strlen(ol->buffer.buf);
-
-			QueryPerformanceCounter(&client->timestamp);
-
-			if(!sendSocket(ol))
-				return false;
-
-			client->ws_status = ws_status_handshake_sent;
-
-			CallbackMsg cb_msg;
-			cb_msg.status = cbs_ws_connecting;
-			cb_msg.data = (void*)client;
-			callbackStatus(&cb_msg);
-
-			return true;
 		}
-
-	pending_recv:
-		if(client->recv_buffer.empty())
-			client->recv_buffer.assign(buffer, buffer + buflen);
+		catch(...)  // invaild format
+		{
+			client->recv_buffer.clear();
+			closeClient(client);
+			return false;
+		}
 	}
 	else if(client->ws_status == ws_status_connected)
 	{
@@ -742,7 +764,7 @@ bool WebSocket::sendMessage(const char* msg, DWORD len, Client* client)
 			return true;
 		}
 
-		bool result1;
+		bool result1 = true;
 		if(client->ws_status == ws_status_connected)
 		{
 			OverlappedDetail* ol = client->createOverlapped(operation_send);
