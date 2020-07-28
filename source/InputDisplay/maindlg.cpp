@@ -12,8 +12,6 @@ void Cmaindlg::init()
 	HICON hIcon = LoadIconW(hinstance, MAKEINTRESOURCE(IDI_ICON1));
 	SetIcon(hIcon, FALSE);
 
-	loadConfigFile();
-
 	// richedit
 	richedit.Attach(GetDlgItem(IDC_RICHEDIT21));
 	CHARFORMAT format;
@@ -37,6 +35,8 @@ void Cmaindlg::init()
 	// hook
 	hook.init(hinstance, onKey, onMouseMove, this);
 	hook.start();
+
+	loadConfigFile();
 }
 
 void Cmaindlg::cleanup()
@@ -116,31 +116,11 @@ LRESULT Cmaindlg::OnBnClickedButtonStart(WORD wNotifyCode, WORD wID, HWND hWndCt
 	switch(websocket.server_status)
 	{
 	case WebSocket::server_status_stopped:
-		start_btn.EnableWindow(FALSE);
-		host_port_edit.EnableWindow(FALSE);
-		host_port_edit.GetWindowText(tmp_str, MAX_TMP_STR);
-		port = (*tmp_str != 0) ? _wtoi(tmp_str) : -1;
-		if(port < 0 || port > 0xffff)
-		{
-			addText(_T("Valid port numbers are 0 - 65535. 0 = auto\n"));
-			host_port_edit.EnableWindow(TRUE);
-		}
-		else if(!websocket.initServer(_wtoi(tmp_str), wsCallback, (void*)this))
-		{
-			addText(_T("Failed to start server.\n"));
-			host_port_edit.EnableWindow(TRUE);
-		}
-		else
-			start_btn.SetWindowText(_T("Stop"));
-		start_btn.EnableWindow(TRUE);
+		startServer();
 		break;
 
 	case WebSocket::server_status_started:
-		start_btn.EnableWindow(FALSE);
-		websocket.cleanup();
-		start_btn.SetWindowText(_T("Start"));
-		start_btn.EnableWindow(TRUE);
-		host_port_edit.EnableWindow(TRUE);
+		stopServer();
 		break;
 	}
 
@@ -383,6 +363,42 @@ void Cmaindlg::acceptConnection(WebSocket::Client* client)
 	websocket.ping(client);
 }
 
+void Cmaindlg::startServer()
+{
+	CWindow start_btn = GetDlgItem(IDC_BUTTON_START);
+	int port;
+
+	start_btn.EnableWindow(FALSE);
+	host_port_edit.EnableWindow(FALSE);
+	host_port_edit.GetWindowText(tmp_str, MAX_TMP_STR);
+	port = (*tmp_str != 0) ? _wtoi(tmp_str) : -1;
+	if(port < 0 || port > 0xffff)
+	{
+		addText(_T("Valid port numbers are 0 - 65535. 0 = auto\n"));
+		host_port_edit.EnableWindow(TRUE);
+	}
+	else if(!websocket.initServer(_wtoi(tmp_str), wsCallback, (void*)this))
+	{
+		addText(_T("Failed to start server.\n"));
+		host_port_edit.EnableWindow(TRUE);
+	}
+	else
+		start_btn.SetWindowText(_T("Stop"));
+
+	start_btn.EnableWindow(TRUE);
+}
+
+void Cmaindlg::stopServer()
+{
+	CWindow start_btn = GetDlgItem(IDC_BUTTON_START);
+
+	start_btn.EnableWindow(FALSE);
+	websocket.cleanup();
+	start_btn.SetWindowText(_T("Start"));
+	start_btn.EnableWindow(TRUE);
+	host_port_edit.EnableWindow(TRUE);
+}
+
 void Cmaindlg::loadConfigFile()
 {
 	CAtlFile file;
@@ -434,6 +450,12 @@ void Cmaindlg::loadConfigFile()
 
 	// send mouse coordinates
 	CheckDlgButton(IDC_CHECK_SEND_MOUSE_COORD, (getValueFromString(str, _T("var send_mouse_coordinates"), _T("false")).CompareNoCase(_T("true")) == 0) ? BST_CHECKED : BST_UNCHECKED);
+
+	// auto start
+	UINT auto_start = (getValueFromString(str, _T("var auto_start"), _T("false")).CompareNoCase(_T("true")) == 0) ? BST_CHECKED : BST_UNCHECKED;
+	CheckDlgButton(IDC_AUTO_START, auto_start);
+	if(auto_start == BST_CHECKED)
+		startServer();
 }
 
 void Cmaindlg::saveConfigFile()
@@ -486,6 +508,9 @@ void Cmaindlg::saveConfigFile()
 
 	// send mouse coordinates
 	replaceValueFromString(str, _T("var send_mouse_coordinates ="), (IsDlgButtonChecked(IDC_CHECK_SEND_MOUSE_COORD) == BST_CHECKED ? _T("true") : _T("false")));
+
+	// auto start
+	replaceValueFromString(str, _T("var auto_start ="), (IsDlgButtonChecked(IDC_AUTO_START) == BST_CHECKED ? _T("true") : _T("false")));
 
 	// write to file
 	if(file.Create(filename, GENERIC_WRITE, 0, CREATE_ALWAYS) != S_OK)

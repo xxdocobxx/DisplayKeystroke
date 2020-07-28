@@ -4,3 +4,4 @@ var host_port = '7788';
 
 var auto_approve = 'false';
 var send_mouse_coordinates = 'false';
+var auto_start = 'false';

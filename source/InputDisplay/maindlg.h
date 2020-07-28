@@ -25,6 +25,8 @@ protected:
 
 	void init();
 	void cleanup();
+	void startServer();
+	void stopServer();
 	void loadConfigFile();
 	void saveConfigFile();
 	CString getValueFromString(CString& string, LPCWSTR find_str, LPCWSTR def_str);
